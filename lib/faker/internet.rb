@@ -17,32 +17,25 @@ module Faker
       def user_name(name = nil)
         return name.scan(/\w+/).shuffle.join(%w(. _).sample).downcase if name
         
-        fix_umlauts([ 
-          Proc.new { Name.first_name.gsub(/\W/, '').downcase },
+        [ 
+          Proc.new { fix_funny_characters Name.first_name.downcase },
           Proc.new { 
             [ Name.first_name, Name.last_name ].map {|n| 
-              n.gsub(/\W/, '')
+              fix_funny_characters(n)
             }.join(%w(. _).sample).downcase }
-        ].sample.call)
+        ].sample.call
       end
       
       def domain_name
-        [ fix_umlauts(domain_word), domain_suffix ].join('.')
+        [ fix_funny_characters(domain_word), domain_suffix ].join('.')
       end
       
-      def fix_umlauts(string)
-        string.gsub(/[äöüß]/i) do |match|
-            case match.downcase
-                when "ä" 'ae'
-                when "ö" 'oe'
-                when "ü" 'ue'
-                when "ß" 'ss'
-            end
-        end
+      def fix_funny_characters(string)
+        string.gsub(/[^a-zA-Z0-9\-]/, '')
       end
       
       def domain_word
-        Company.name.split(' ').first.gsub(/\W/, '').downcase
+        fix_funny_characters Company.name.split(' ').first.downcase
       end
       
       def domain_suffix
